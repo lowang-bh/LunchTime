@@ -65,30 +65,24 @@
 <div class="header">
 	<div class="container">
 		<div class="top-header">
-				<div class="header-left">
-					<p>Personal View: Lunch Order System</p>
-				</div>
-				<div class="login-section">
-				{% if user_login %}
-					<ul>
-					<li><p> Welcome {{ user_name }}</p> </li> |
-					<li><a href="{% url "logout" %}">Log out</a> </li>
-					</ul>
-				{% else %}
-					<ul>
-						<li><a href="{% url "login" %}">Login</a> </li> |
-						<li><a href="{% url "register" %}">Register</a> </li>
-					</ul>
-				{% endif %}
-				</div>
-
-				<div class="header-right">
-						<div class="cart box_1">
-							<a href="{% url 'homepage' %}"><h3>HomePage</h3></a>
-							<div class="clearfix"> </div>
-						</div>
-				</div>
-				<div class="clearfix"></div>
+			<div class="header-left good-left">
+				<p>Personal View: Lunch Order System</p>
+			</div>
+			<div class="login-section">
+			{% if user_login %}
+				<ul>
+				<li><a href="{% url "homepage" %}">Homepage</a></li> | 
+				<li><p> Welcome {{ user_name }}</p> </li> |
+				<li><a href="{% url "logout" %}">Log out</a> </li>
+				</ul>
+			{% else %}
+				<ul>
+					<li><a href="{% url "login" %}">Login</a> </li> |
+					<li><a href="{% url "register" %}">Register</a> </li>
+				</ul>
+			{% endif %}
+			</div>
+				
 		</div>
 	</div>
 </div>
@@ -99,6 +93,7 @@
 		<table id="customers">
 		<tr>
 			<th>OrderId</th>
+			<th>Date</th>
 			<th>Order Time</th>
 			<th>LunchName</th>
 			<th>Restaurant Name</th>
@@ -110,6 +105,7 @@
 					<tr>
 						{% if forloop.first %}
 						<td rowspan="{{values|length}}"> {{key}}</td>
+						<td rowspan="{{values|length}}"> {{value.date}}</td>
 						<td rowspan="{{values|length}}"> {{value.order_time }}</td>
 						{%endif%}
 						<td> {{value.cousine.cousine_name }}</td>
@@ -133,25 +129,47 @@
 	<table class="order-table" id="customers">
 		<tr>
 			<th>OrderId</th>
+			<th>Date</th>
 			<th>Order Time</th>
 			<th>LunchName</th>
 			<th>Restaurant Name</th>
 			<th>Quantity</th>
 			<th>State</th>
+			<th>Score</th>
 		</tr>
 		{% for key, values in history_order.items %}
 					{% for value in values %} <!-- key is serial no, value is objects list -->
 					<tr>
 						{% if forloop.first %}
 						<td rowspan="{{values|length}}"> {{key}}</td>
+						<td rowspan="{{values|length}}"> {{value.date}}</td>
 						<td rowspan="{{values|length}}"> {{value.order_time }}</td>
 						{%endif%}
 						<td> {{value.cousine.cousine_name }}</td>
 						<td> {{value.cousine.restaurant_name}}</td>
 						<td> {{value.quantity }}</td>
+						
 						{% if forloop.first %}
 							<td rowspan="{{values|length}}"> {{value.order_state }}</td>
 						{%endif%}
+						<td> 
+						   <select id= {{key}} name="cousine_name" onChange="make_score({{key}})">
+								<option>{{ value.score }}</option>
+								{% if value.score == 0 %}
+									 <option>1</option>
+									 <option>2</option>
+									 <option>3</option>
+									 <option>4</option>
+									 <option>5</option>
+									 <option>6</option>
+									 <option>7</option>
+									 <option>8</option>
+									 <option>9</option>
+									 <option>10</option>
+                              {% endif %}
+                           </select>
+						</td>
+						
 					</tr>
 					{% endfor %}					
 		</tr>
@@ -188,8 +206,10 @@
 <div class="footer-top">
 	<div class="container">
 		<div class="col-md-3 footer-grid">
-			<h3><a href="#">Food</a></h3>
+			<h4>AD</h4>
+			<p>AD   Co-op<span>Tel:  1 1 0</span></p>
 		</div>
+		
 		<div class="col-md-3 footer-grid">
 			<h4>ORDERS</h4>
 			<p>MONDAY - FRIDAY<span>8 : 00 - 10 : 00</span></p>
@@ -210,8 +230,8 @@
 <!-- footer -->
 <div class="footer">
 	<div class="container">
-		<div class="footer-left">
-			<p>Copyright &copy; 2016.Infinera Technology(Beijing). All rights reserved.More Templates <a href="http://www.infinera.com" target="_blank" title="CSIM ">CSIM Support</a> - Collect from <a href="http://www.cssmoban.com/" title="Food" target="_blank">Food</a></p>
+		<div class="footer-right">
+			<p>Copyright &copy; 2016.Infinera Technology(Beijing). All rights reserved. <a href="http://www.infinera.com" target="_blank" title="CSIM ">CSIM Support</a></p>
 		</div>
 		<div class="clearfix"></div>
 	</div>
@@ -223,6 +243,28 @@ function change_state(){
 	//""<div><select><option value="">{{value.order_state }}</option><option value='United States'>United States</option><option value='United Kingdom'>United Kingdom</option></select></div>"
 	
 }							
+function make_score(key)
+{
+	var sel_item = document.getElementById(key);
+	//var cousine_name =document.getElementsByName("cousine_name");
+	var value = sel_item[sel_item.selectedIndex].value;
+	//var text = sel_item[sel_item.selectedIndex].text;
+	$.ajax({
+		// points to the url where your data will be posted
+		url:'/scorechange/',
+		// post for security reason
+		type: "POST",
+		// data that you will like to return 
+		data: {'order_id': key,
+				'order_score' : value},
+		// what to do when the call is success 
+		success: function(response){},
+		// what to do when the call is complete ( you can right your clean from code here )
+		complete: function(){},
+		// what to do when there is an error
+		error: function(xhr, textStatus, thrownError){}
+	});
+}
 </script>
 </body>
 </html>

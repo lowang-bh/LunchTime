@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+{% load static %}
+
+<head>
+    <meta charset="utf-8">
+    <title>Add Menu</title>
+    <meta name="description" content="">
+    <meta name="author" content="CSIM">
+    <link href=" {% static "css/bootstrap.css" %}" rel="stylesheet">
+    <link href=" {% static "css/style.css" %}" rel="stylesheet" type="text/css" media="all" />
+</head>
+
+<div class="infineralogo">
+    <img src="{% static "images/InfineraLogo.jpg" %}" />
+</div>
+
+<body>
+<div class="login">
+    <div class="container">
+        <div class="login-grids">
+            <div class="col-md-6 log">
+                <h3>Restaurant & Cuisine</h3>
+                <div class="strip"></div>
+                <p>
+                Please specify the restaurant & cuisine information:
+                </p>
+                <form method='post'>
+                    {% csrf_token %}
+                    {% for item in restaurant_form %}
+                        <h5><b>{{ item.label_tag }}</b></h5>
+                        {{ item }}
+                        <!--
+                        <input type="text" id={{ item.label }}>
+                        -->
+                    {% endfor %}
+                    <br/><br/><br/>
+                    <input type="submit" value="ADD">
+                </form>
+            </div>
+
+            <div class="clearfix"></div>
+        </div>
+    </div>
+</div>
+</body>

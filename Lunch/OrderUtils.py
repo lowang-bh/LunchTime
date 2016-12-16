@@ -9,6 +9,7 @@ import time, datetime
 from models import CousineBase, RestaurantBase, NewOrderRecord, SERVICE_TYPE, ORDER_STATE
 from register.models import UserRecord
 import re
+from time import strftime, gmtime
 
 def idenfity_product_id(product_list):
     '''
@@ -24,11 +25,49 @@ def generate_order_id():
     return int(time.time())
 
 
-def change_order_state(order_id, old_state, new_state):
+def change_order_score(order_id, cousine_name, score):
+    '''
+    change the history order score
+    '''
+    if not score:
+        return False
+    order_list = NewOrderRecord.objects.filter(order_serial_no=order_id)
+    if not order_list:
+        print "Failed to get order data from NewOrderRecord"
+        return False
+    for order in order_list:
+        if isinstance(cousine_name, str) and order.cousine.cousine_name == cousine_name:
+            order.score = score
+            order.save()
+        else:
+            order.score = score
+            order.save()
+    order_list = NewOrderRecord.objects.filter(order_serial_no=order_id)
+    for order in order_list:
+        print order.cousine.cousine_name, order.score
+    return True
+
+def change_order_state(order_id, new_state):
     '''
     change the order state, from
     '''
+    if (not order_id) or (not new_state):
+        return False
+
+    order_list = NewOrderRecord.objects.filter(order_serial_no=order_id)
+    if not order_list:
+        print "Failed to get order data from NewOrderRecord"
+        return False
+    order = order_list[0]
+    print "BEFORE: order_id=[%s]; order_state=[%s]; new_state=[%s]" % (order.order_serial_no, order.order_state, new_state)
     
+    if order.order_state != new_state:
+        order.order_state = new_state
+        order.save()
+    
+    print "AFTER: order_id=[%s]; order_state=[%s]" % (order.order_serial_no, order.order_state)
+    return True
+
 
 def generate_order(user_name, product_list, quantity_list):
     '''
@@ -38,12 +77,14 @@ def generate_order(user_name, product_list, quantity_list):
     if not product_list or not quantity_list:
         return
     
+    date = strftime("%Y-%m-%d", gmtime())
     order_id = generate_order_id()
     user_ = UserRecord.objects.filter(user_name__exact=user_name)
     i = 0
     for product_id in product_list:
         cousine = CousineBase.objects.get(id=product_id)
-        order = NewOrderRecord(order_serial_no=str(order_id), \
+        order = NewOrderRecord(date=date, \
+                            order_serial_no=str(order_id), \
                            expected_time="Lunch", \
                            order_by_one= list(user_)[0],\
                            cousine=cousine,\
@@ -161,6 +202,75 @@ def get_cousine_list():
     :return:  a list
     '''
     return list(CousineBase.objects.all())
+
+
+def get_consine_frequency(user_name, include_all=True, reverse=True):
+    '''
+    Returen the consine list orderd by frequency
+    Used to recommend consine
+    @param include_all: if False, cousine that hasn't been orderd will not be returned
+    '''
+    order_list = get_orders_by_user(user_name)
+    if not order_list:
+        return []
+
+    frequency_map = {}
+    for order in order_list:
+        if frequency_map.has_key(order.cousine.cousine_name):
+            frequency_map[order.cousine.cousine_name] += 1
+        else:
+            frequency_map[order.cousine.cousine_name] = 1
+
+    # include_all make whether return cousine hasn't been orderd
+    if include_all:
+        cousine_list = list(CousineBase.objects.all())
+        for cousine in cousine_list:
+            if frequency_map.has_key(cousine.cousine_name):
+                continue
+            frequency_map[cousine.cousine_name] = 0
+
+
+    sorted_frequency_map = sorted(frequency_map.items(), key=lambda d:d[1], reverse=reverse)
+    return  sorted_frequency_map
+
+
+def get_resturant_frequency(user_name, reverse=True):
+    '''
+    Retruen the resturant Frequency list by user.
+    Used to recommend resturant
+    '''
+    order_list = get_orders_by_user(user_name)
+    if not order_list:
+        return []
+    frequency_map = {}
+    for order in order_list:
+        restaurant = order.cousine.restaurant_name
+        frequency_map.setdefault(restaurant.name, 0)
+        frequency_map[restaurant.name] += 1
+    print frequency_map
+
+    sorted_restarant_map = sorted(frequency_map.items(), key=lambda d:d[1], reverse=reverse)
+    print sorted_restarant_map
+    return sorted_restarant_map
+
+
+def get_CFR_data(include_all=False):
+    '''
+    return all the users' order data
+    '''
+    users = UserRecord.objects.all()
+    data = {}
+    for user in users:
+        data.setdefault(user.user_name, {})
+        user_data = get_consine_frequency(user.user_name, include_all)
+        if not user_data:
+            continue
+        total = sum([value[1] for value in user_data])
+        # print user.user_name, total, user_data
+        for cousine, times in user_data:
+            data[user.user_name][cousine] = times / (total + 0.0)
+
+    return data
 
 
 if __name__ == '__main__':

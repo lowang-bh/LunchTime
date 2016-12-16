@@ -21,7 +21,7 @@ from register import views as register_views
 urlpatterns = [
     url(r'^login/', views.login, name='login'),
     url(r'^adminlogin/', views.admin_login, name='admin_login'),
-    url(r'^Lunch/', views.home_page, name='homepage'),
+    url(r'^lunch/', views.home_page, name='homepage'),
     url(r'^admin/', admin.site.urls, name='admin'),
     url(r'^register/', register_views.index, name='register'),
     url(r'^registersuccess/', register_views.register_success, name='register_success'),
@@ -33,4 +33,12 @@ urlpatterns = [
     url(r'^personal/', views.personal_info, name='personal_info'),
     url(r'^administrator/', views.administrator_info, name='administrator_info'),
     url(r'^summary/', views.summary, name='summary'),
+    url(r'^orderstatechange/', views.order_state_change, name='order_state_change'),
+    url(r'^notifyuser/', views.notify_user, name='notify_user'),
+    url(r'^adminadd/', views.admin_add, name='admin_add'),
+    url(r'^adminaddnext/', views.admin_add_next, name='admin_add_next'),
+    url(r'^scorechange/', views.personal_change_score, name="personal_change_score"),
+    url(r'^recommend_newdishes/', views.admin_recommend_newdishes, name='admin_recommend_newdishes'),
+    url(r'^recommend_popular/', views.admin_recommend_popular, name='admin_recommend_popular'),
+    url(r'^recommend_specialoffer/', views.admin_recommend_specialoffer, name='admin_recommend_specialoffer'),
 ]

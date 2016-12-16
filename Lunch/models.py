@@ -72,8 +72,8 @@ class CousineBase(models.Model):
     cousine_price = models.CharField(max_length=25)
     #service time
     service_time = models.CharField(max_length=25, choices=SERVICE_TYPE)
-    # restaurant FK
-#     restaurant_id = models.ForeignKey(RestaurantBase, on_delete=models.CASCADE, default=1)
+    # picture path
+    picture = models.ImageField(upload_to='restaurant/%Y/%m/%d', blank=True, null=True)
     
     def __str__(self):
         return self.cousine_name
@@ -138,7 +138,10 @@ class NewOrderRecord(models.Model):
     """
     THe order of a transaction
     """
+    from time import strftime, gmtime
+    date1 = strftime("%Y-%m-%d",gmtime())
     # the placing time of the order
+    date = models.CharField(default=date1, max_length=20)
     order_time = models.TimeField(auto_now_add=True)
     order_serial_no = models.CharField(max_length=25)
     #the expected time the food expected
@@ -147,6 +150,7 @@ class NewOrderRecord(models.Model):
     cousine = models.ForeignKey(CousineBase)
     quantity = models.IntegerField()
     order_state = models.CharField(max_length=25, choices=ORDER_STATE)
+    score = models.IntegerField(default=0, help_text="Please give a score in [1,10]")
 
     def __str__(self):
         return self.order_serial_no
